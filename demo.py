@@ -6,18 +6,18 @@ import screenshot_simulator as ss
 
 # reading image and cursor
 img = cv2.imread('51.jpg')
-mouse = cv2.imread('cursors/01.png', cv2.IMREAD_UNCHANGED)
+mouse = cv2.imread('cursors/arrow_m.png', cv2.IMREAD_UNCHANGED)
 
 # f1 test
 f1_img = ss.f1(img, mouse, (30, 30), 'out/test_f1.jpg')
 cv2.imshow('vis', f1_img)
 
 # f2 test
-res, Mx = ss.f2(img, (300, 200, 45))
-print(Mx)
+res, mask = ss.f2(img, (300, 200, 45))
 
-cv2.imshow('img', img)
+# cv2.imshow('img', img)
 cv2.imshow('res', res)
+cv2.imshow('mask', mask)
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()
