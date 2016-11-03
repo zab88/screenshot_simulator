@@ -11,13 +11,10 @@ def f1(bg, mouse, location, filename):
     :param filename: Filename where to save the result image (string)
     :return: OpenCV image
     """
-    rows, cols, channels = mouse.shape
-    if channels != 4:
-        print('cursor image without transparent layer!')
-        return None
 
     # real offset in pixels
     bg_h, bg_w = bg.shape[:2]
+    rows, cols, channels = mouse.shape
     x, y = int(float(location[0]) * float(bg_w) / 100.), int(float(location[1]) * float(bg_h) / 100.)
     roi = bg[y:y + rows, x:x + cols]
 
