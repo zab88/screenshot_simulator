@@ -3,7 +3,7 @@ import numpy as np
 import math
 
 
-def f1(bg, mouse, location, filename):
+def paste_image(bg, mouse, location, filename):
     """
     :param bg: Background image (OpenCV image)
     :param mouse: mage of a mouse pointer (OpenCV image)
@@ -48,7 +48,7 @@ def f1(bg, mouse, location, filename):
     return bg
 
 
-def f2(cv_img, scale_params, transparent_bg=True):
+def distort_image(cv_img, scale_params, transparent_bg=True):
     """
     :param cv_img: opencv image
     :param scale_params: tuple height/width/rotation degree
