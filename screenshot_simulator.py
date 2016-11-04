@@ -3,12 +3,13 @@ import numpy as np
 import math
 
 
-def paste_image(bg, mouse, location, filename):
+def paste_image(bg, mouse, location, filename, mask=None):
     """
     :param bg: Background image (OpenCV image)
     :param mouse: mage of a mouse pointer (OpenCV image)
     :param location: tuple (x,y) in percentages of background image width/height
     :param filename: Filename where to save the result image (string)
+    :param mask: mask can be set manually, otherwise transparent layer used for mask
     :return: OpenCV image
     """
 
@@ -19,10 +20,11 @@ def paste_image(bg, mouse, location, filename):
     roi = bg[y:y + rows, x:x + cols]
 
     # Now create a mask of cursor and create its inverse mask also
-    if channels == 4:
-        mask = np.array(mouse[:, :, 3], np.uint8)
-    else:
-        mask = np.zeros((rows, cols), np.uint8)
+    if mask is None:
+        if channels == 4:
+            mask = np.array(mouse[:, :, 3], np.uint8)
+        else:
+            mask = np.ones((rows, cols), np.uint8)*255
 
     mouse = cv2.merge([mouse[:, :, 0], mouse[:, :, 1], mouse[:, :, 2]])
     mask_inv = cv2.bitwise_not(mask)
@@ -48,7 +50,7 @@ def paste_image(bg, mouse, location, filename):
     return bg
 
 
-def distort_image(cv_img, scale_params, transparent_bg=True):
+def distort_image(cv_img, scale_params=(None, None, None), transparent_bg=True):
     """
     :param cv_img: opencv image
     :param scale_params: tuple height/width/rotation degree
@@ -63,11 +65,11 @@ def distort_image(cv_img, scale_params, transparent_bg=True):
     else:
         fy = (float(scale_params[0]) / rows)
         fx = (float(scale_params[1]) / cols)
-        res = cv2.resize(cv_img, None, fx=fx, fy=fy, interpolation=cv2.INTER_CUBIC)  # INTER_AREA is faster then INTER_CUBIC
+        res = cv2.resize(cv_img, None, fx=fx, fy=fy, interpolation=cv2.INTER_AREA)  # INTER_AREA is faster then INTER_CUBIC
 
     # if no rotation
     if not scale_params[2]:
-        return res, res[:,:,3] if channels == 4 else np.zeros((rows, cols), np.uint8)
+        return res #, res[:,:,3] if channels == 4 else np.zeros((rows, cols), np.uint8)
 
     # to avoid missing corners after rotation - image should be expanded
     rows, cols = res.shape[:2]
@@ -78,9 +80,9 @@ def distort_image(cv_img, scale_params, transparent_bg=True):
     img_ext = cv2.copyMakeBorder(img_ext, tb_border, tb_border, lr_border, lr_border, cv2.BORDER_CONSTANT, img_ext, (0, 0, 0))
     rows_ext, cols_ext = img_ext.shape[:2]
 
-    # mask creating
-    mask_ = np.zeros((rows_ext, cols_ext), np.uint8)
-    cv2.rectangle(mask_, (lr_border, tb_border), (cols_ext - lr_border, rows_ext - tb_border), 255, -1)
+    # mask creating - uncoment to return mask
+    # mask_ = np.zeros((rows_ext, cols_ext), np.uint8)
+    # cv2.rectangle(mask_, (lr_border, tb_border), (cols_ext - lr_border, rows_ext - tb_border), 255, -1)
 
     # second - apply rotation
     # rotation matrix creation
@@ -90,9 +92,9 @@ def distort_image(cv_img, scale_params, transparent_bg=True):
     dst = cv2.warpAffine(img_ext, M, (cols_ext, rows_ext))  # borderMode=cv2.BORDER_TRANSPARENT, borderValue=0
 
     # mask can be not rectangle, if input image was with transparency
-    if dst.shape[2] == 4:
-        mask_ = dst[:,:,3]
-    else:
-        mask_ = cv2.warpAffine(mask_, M, (cols_ext, rows_ext))
+    # if dst.shape[2] == 4:
+    #     mask_ = dst[:,:,3]
+    # else:
+    #     mask_ = cv2.warpAffine(mask_, M, (cols_ext, rows_ext))
 
-    return dst, mask_
+    return dst #, mask_

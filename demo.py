@@ -1,28 +1,32 @@
 import cv2
 import numpy as np
 import screenshot_simulator as ss
+import time
 
-# print cv2.__version__ # 2.4.13
+# test on 100 images
+def speed_test(bg, mouse):
+    start_time = time.time()
+    for x in range(20, 81, 15):
+        for y in range(20, 81, 15):
+            ss.paste_image(bg.copy(), ss.distort_image( mouse.copy(), (20, 20, 0)), (x,y), 'out/0_%i_%i.jpg' % (x, y))
+            ss.paste_image(bg.copy(), ss.distort_image( mouse.copy(), (20, 20, 90)), (x,y), 'out/90_%i_%i.jpg' % (x, y))
+            ss.paste_image(bg.copy(), ss.distort_image( mouse.copy(), (20, 20, 180)), (x,y), 'out/180_%i_%i.jpg' % (x, y))
+            ss.paste_image(bg.copy(), ss.distort_image( mouse.copy(), (20, 20, 270)), (x,y), 'out/270_%i_%i.jpg' % (x, y))
+    print("--- %s seconds ---" % (time.time() - start_time))
 
 # reading image and cursor
-img = cv2.imread('51.jpg')
+bg = cv2.imread('bg_100x100.jpg')
 mouse = cv2.imread('cursors/arrow_m.png', cv2.IMREAD_UNCHANGED)
 
-fg_in = cv2.imread('home-256.png', cv2.IMREAD_UNCHANGED)
-fg, mask = ss.distort_image(fg_in, (None, 128, 45))
-f1_img = ss.paste_image(img, fg, (30, 30), 'out/test_test.jpg')
+speed_test(bg, mouse)
 
-cv2.imshow('fg_in', fg_in)
+
+fg = ss.distort_image(mouse, (None, None, 180))
+bg = ss.paste_image(bg, fg, (70, 30), 'out/test_test.jpg')
+
 cv2.imshow('fg', fg)
-cv2.imshow('mask', mask)
-cv2.imshow('vis', f1_img)
-
-# f2 test
-# res, mask = ss.f2(img, (300, 200, 45))
-
-# cv2.imshow('img', img)
-# cv2.imshow('res', res)
-# cv2.imshow('mask', mask)
+cv2.imshow('bg', bg)
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()
+
