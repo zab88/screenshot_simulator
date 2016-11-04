@@ -16,8 +16,15 @@ def paste_image(bg, mouse, location, filename, mask=None):
     # real offset in pixels
     bg_h, bg_w = bg.shape[:2]
     rows, cols, channels = mouse.shape
-    x, y = int(float(location[0]) * float(bg_w) / 100.), int(float(location[1]) * float(bg_h) / 100.)
-    roi = bg[y:y + rows, x:x + cols]
+    x = int(float(location[0]) * float(bg_w) / 100. - float(cols)/2.)
+    y = int(float(location[1]) * float(bg_h) / 100. - float(rows)/2.)
+    roi = bg[max(y,0):y + rows, max(x,0):x + cols]
+
+    # if mouse out of borders - area of mouse image should be recalculated
+    mouse = mouse[
+                abs(min(y,0)):abs(min(y,0))+roi.shape[0],
+                abs(min(x,0)):abs(min(x,0))+roi.shape[1]
+            ]
 
     # Now create a mask of cursor and create its inverse mask also
     if mask is None:
@@ -29,11 +36,6 @@ def paste_image(bg, mouse, location, filename, mask=None):
     mouse = cv2.merge([mouse[:, :, 0], mouse[:, :, 1], mouse[:, :, 2]])
     mask_inv = cv2.bitwise_not(mask)
 
-    # if mouse out of bounds, mask should be contracted
-    mask = mask[:roi.shape[0], :roi.shape[1]]
-    mask_inv = mask_inv[:roi.shape[0], :roi.shape[1]]
-    mouse = mouse[:roi.shape[0], :roi.shape[1]]
-
     # Now black-out the area of cursor in ROI
     img1_bg = cv2.bitwise_and(roi, roi, mask=mask_inv)
 
@@ -42,7 +44,7 @@ def paste_image(bg, mouse, location, filename, mask=None):
 
     # Put logo in ROI and modify the main image
     dst = cv2.add(img1_bg, img2_fg)
-    bg[y:y + rows, x:x + cols] = dst
+    bg[max(y, 0):y + rows, max(x, 0):x + cols] = dst
 
     # Saving image
     cv2.imwrite(filename, bg)
@@ -50,22 +52,22 @@ def paste_image(bg, mouse, location, filename, mask=None):
     return bg
 
 
-def distort_image(cv_img, scale_params=(None, None, None), transparent_bg=True):
+def distort_image(cv_img, scale_params=(None, None, None), interpolation=cv2.INTER_AREA):
     """
     :param cv_img: opencv image
-    :param scale_params: tuple height/width/rotation degree
+    :param scale_params: tuple height percentage/width percentage/rotation degree
     :return: image, matrix
     """
     rows, cols, channels = cv_img.shape
 
     # first - resize width and height
     # if new width or height is None, then no resize
-    if (scale_params[0] is None) or (scale_params[1] is None):
-        res = cv_img
+    if (scale_params[0] is None) and (scale_params[1] is None):
+        res = cv_img.copy()
     else:
-        fy = (float(scale_params[0]) / rows)
-        fx = (float(scale_params[1]) / cols)
-        res = cv2.resize(cv_img, None, fx=fx, fy=fy, interpolation=cv2.INTER_AREA)  # INTER_AREA is faster then INTER_CUBIC
+        fy = 1. if not scale_params[0] else (float(scale_params[0])/100.0)
+        fx = 1. if not scale_params[1] else (float(scale_params[1])/100.0)
+        res = cv2.resize(cv_img.copy(), None, fx=fx, fy=fy, interpolation=interpolation)  # INTER_AREA is faster then INTER_CUBIC
 
     # if no rotation
     if not scale_params[2]:
@@ -80,9 +82,9 @@ def distort_image(cv_img, scale_params=(None, None, None), transparent_bg=True):
     img_ext = cv2.copyMakeBorder(img_ext, tb_border, tb_border, lr_border, lr_border, cv2.BORDER_CONSTANT, img_ext, (0, 0, 0))
     rows_ext, cols_ext = img_ext.shape[:2]
 
-    # mask creating - uncoment to return mask
-    # mask_ = np.zeros((rows_ext, cols_ext), np.uint8)
-    # cv2.rectangle(mask_, (lr_border, tb_border), (cols_ext - lr_border, rows_ext - tb_border), 255, -1)
+    # mask creating
+    mask_ = np.zeros((rows_ext, cols_ext), np.uint8)
+    cv2.rectangle(mask_, (lr_border, tb_border), (cols_ext - lr_border, rows_ext - tb_border), 255, -1)
 
     # second - apply rotation
     # rotation matrix creation
@@ -92,9 +94,10 @@ def distort_image(cv_img, scale_params=(None, None, None), transparent_bg=True):
     dst = cv2.warpAffine(img_ext, M, (cols_ext, rows_ext))  # borderMode=cv2.BORDER_TRANSPARENT, borderValue=0
 
     # mask can be not rectangle, if input image was with transparency
-    # if dst.shape[2] == 4:
-    #     mask_ = dst[:,:,3]
-    # else:
-    #     mask_ = cv2.warpAffine(mask_, M, (cols_ext, rows_ext))
+    if dst.shape[2] == 4:
+        mask_ = dst[:,:,3]
+    else:
+        mask_ = cv2.warpAffine(mask_, M, (cols_ext, rows_ext))
 
     return dst #, mask_
+

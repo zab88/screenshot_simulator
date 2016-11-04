@@ -21,8 +21,8 @@ mouse = cv2.imread('cursors/arrow_m.png', cv2.IMREAD_UNCHANGED)
 speed_test(bg, mouse)
 
 
-fg = ss.distort_image(mouse, (None, None, 180))
-bg = ss.paste_image(bg, fg, (70, 30), 'out/test_test.jpg')
+fg = ss.distort_image(mouse, (150, 50, 180))
+bg = ss.paste_image(bg, fg, (20, 70), 'out/test_test.jpg')
 
 cv2.imshow('fg', fg)
 cv2.imshow('bg', bg)
