@@ -12,6 +12,7 @@ def paste_image(bg, mouse, location, filename, mask=None):
     :param mask: mask can be set manually, otherwise transparent layer used for mask
     :return: OpenCV image
     """
+    bg = bg.copy()
 
     # real offset in pixels
     bg_h, bg_w = bg.shape[:2]
@@ -52,13 +53,14 @@ def paste_image(bg, mouse, location, filename, mask=None):
     return bg
 
 
-def distort_image(cv_img, scale_params=(None, None, None), interpolation=cv2.INTER_AREA):
+def distort_image(cv_img, scale_params=(None, None, None), mask=None, interpolation=cv2.INTER_AREA):
     """
     :param cv_img: opencv image
     :param scale_params: tuple height percentage/width percentage/rotation degree
-    :return: image, matrix
+    :param mask: is out parameter, returns mask of pixels to be transparent
+    :param interpolation: INTER_AREA, INTER_CUBIC
+    :return: image cv2
     """
-    rows, cols, channels = cv_img.shape
 
     # first - resize width and height
     # if new width or height is None, then no resize
@@ -98,6 +100,7 @@ def distort_image(cv_img, scale_params=(None, None, None), interpolation=cv2.INT
         mask_ = dst[:,:,3]
     else:
         mask_ = cv2.warpAffine(mask_, M, (cols_ext, rows_ext))
+    mask = mask_
 
-    return dst #, mask_
+    return dst
 

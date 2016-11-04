@@ -8,10 +8,10 @@ def speed_test(bg, mouse):
     start_time = time.time()
     for x in range(20, 81, 15):
         for y in range(20, 81, 15):
-            ss.paste_image(bg.copy(), ss.distort_image( mouse.copy(), (20, 20, 0)), (x,y), 'out/0_%i_%i.jpg' % (x, y))
-            ss.paste_image(bg.copy(), ss.distort_image( mouse.copy(), (20, 20, 90)), (x,y), 'out/90_%i_%i.jpg' % (x, y))
-            ss.paste_image(bg.copy(), ss.distort_image( mouse.copy(), (20, 20, 180)), (x,y), 'out/180_%i_%i.jpg' % (x, y))
-            ss.paste_image(bg.copy(), ss.distort_image( mouse.copy(), (20, 20, 270)), (x,y), 'out/270_%i_%i.jpg' % (x, y))
+            ss.paste_image(bg, ss.distort_image( mouse, (120, 120, 0)), (x,y), 'out/0_%i_%i.jpg' % (x, y))
+            ss.paste_image(bg, ss.distort_image( mouse, (120, 120, 90)), (x,y), 'out/90_%i_%i.jpg' % (x, y))
+            ss.paste_image(bg, ss.distort_image( mouse, (120, 120, 180)), (x,y), 'out/180_%i_%i.jpg' % (x, y))
+            ss.paste_image(bg, ss.distort_image( mouse, (120, 120, 270)), (x,y), 'out/270_%i_%i.jpg' % (x, y))
     print("--- %s seconds ---" % (time.time() - start_time))
 
 # reading image and cursor
